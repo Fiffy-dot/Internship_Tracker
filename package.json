@@ -17,5 +17,9 @@
   "bugs": {
     "url": "https://github.com/Fiffy-dot/internship_tracker/issues"
   },
-  "homepage": "https://github.com/Fiffy-dot/internship_tracker#readme"
+  "homepage": "https://github.com/Fiffy-dot/internship_tracker#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^8.5.1"
+  }
 }

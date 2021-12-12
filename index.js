@@ -12,7 +12,7 @@ mongoose.Promise = global.Promise
 app.use(bodyParser.json())
 
 // init the routes
-app.use('/api', require('./routes/api'))
+app.use('/', require('./routes/api'))
 
 app.use(function (err, req, res, next) {
   res.status(422).send({error: err.message})
@@ -21,3 +21,4 @@ app.use(function (err, req, res, next) {
 app.listen(process.env.port || 8000, () => {
   console.log('server started at http://localhost:8000');
 });
+
