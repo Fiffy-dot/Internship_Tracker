@@ -6,6 +6,8 @@ const Employer = require('../models/employer')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
+const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
+
 // get all internships
 router.get('/internships', function (req, res, next) {
     Internship.find({}).then (function (internships) {
@@ -88,6 +90,43 @@ router.post('/employerRegister', async (req, res) => {
 	res.json({ status: 'ok' })
 })
 
+// Sign In Employer
+router.post('/employerLogin', async (req, res, next)  => {
+    try {
+        let employer = await Employer.findOne({ where: { email: req.body.email} })
+        if (!employer) {
+            return res.status(401).json({
+                status: failed,
+                message: "Authentication Failed: User with email address not found."
+            })
+        }
+        bcrypt.compare(req.body.password, employer.password).then(response => {
+            if (!response) {
+                return res.status(401).json({
+                    status: failed,
+                    message: "Authentication Failed: Incorrect password."
+                })
+            }
+            let authToken = jwt.sign({ email: employer.email, id: employer.id },
+                JWT_SECRET);
+            return res.status(200).json({
+                status: true,
+                message: "User authentication successful",
+                user: { name: employer.name, email: employer.email, id: employer.id },
+                token: authToken,
+                expiresIn: 3600
+            })
+        })
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            success: false,
+            message: "Oopss! Something is wrong..."
+        })
+    }
+})
+
 // get all employers
 router.get('/employers', function (req, res, next) {
     Employer.find({}).then (function (employers) {
@@ -147,6 +186,43 @@ router.post('/studentRegister', async (req, res) => {
 	}
 
 	res.json({ status: 'ok' })
+})
+
+// Sign In Student
+router.post('/studentLogin', async (req, res, next)  => {
+    try {
+        let student = await Student.findOne({ where: { email: req.body.email} })
+        if (!student) {
+            return res.status(401).json({
+                status: failed,
+                message: "Authentication Failed: User with email address not found."
+            })
+        }
+        bcrypt.compare(req.body.password, student.password).then(response => {
+            if (!response) {
+                return res.status(401).json({
+                    status: failed,
+                    message: "Authentication Failed: Incorrect password."
+                })
+            }
+            let authToken = jwt.sign({ email: student.email, id: student.id },
+                JWT_SECRET);
+            return res.status(200).json({
+                status: true,
+                message: "User authentication successful",
+                user: { name: student.name, email: student.email, id: student.id },
+                token: authToken,
+                expiresIn: 3600
+            })
+        })
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            success: false,
+            message: "Oopss! Something is wrong..."
+        })
+    }
 })
 
 // get all students
