@@ -1,4 +1,5 @@
-const mongoose = require("mongoose") 
+import mongoose from 'mongoose';
+
 const Schema = mongoose.Schema
 
 // internship schema
@@ -37,6 +38,6 @@ const InternshipSchema = new Schema({
     }
 })
 
-const Internship = mongoose.model('internships', InternshipSchema)
+const InternshipModel = mongoose.model('internships', InternshipSchema)
 
-module.exports = Internship
+export default InternshipModel;
