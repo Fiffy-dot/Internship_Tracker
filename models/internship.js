@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-
+const mongoose = require("mongoose") 
 const Schema = mongoose.Schema
 
 // internship schema
@@ -13,7 +12,7 @@ const InternshipSchema = new Schema({
         required : [true, "Title field is required"]
     },
     employerId :{
-        type:Number,
+        type:String,
         required : [true, "Title field is required"]
     },
     numberCandidate :{
@@ -34,10 +33,10 @@ const InternshipSchema = new Schema({
     },
     createdDate : {
         type: Date,
-        required : [true, "Title field is required"]
+        default: Date.now,
     }
 })
 
-const InternshipModel = mongoose.model('internships', InternshipSchema)
+const Internship = mongoose.model('internships', InternshipSchema)
 
-export default InternshipModel;
+module.exports = Internship

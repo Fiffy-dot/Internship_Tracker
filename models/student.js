@@ -19,6 +19,11 @@ const StudentSchema = new Schema({
         type: String,
         required : [true, "Title field is required"]
     }
+    ,
+    resumeLink :{
+        type: String,
+        required : [true, "Title field is required"]
+    }
     
 })
 

@@ -1,7 +1,6 @@
-import express from 'express'
-import mongoose from 'mongoose'
-import bodyParser from 'body-parser'
-import router from './src/routes/api.js'
+const express = require("express")
+const mongoose = require("mongoose") 
+const bodyParser = require ("body-parser")
 
 // init app
 const app = express()
@@ -10,10 +9,16 @@ const app = express()
 mongoose.connect("mongodb://localhost/internship-tracker")
 mongoose.Promise = global.Promise
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
+
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  })
+);
 
 // init the routes
-app.use('/', router)
+app.use('/', require('./routes/api'))
 
 app.use(function (err, req, res, next) {
   res.status(422).send({error: err.message})
