@@ -1,6 +1,7 @@
-const express = require("express")
-const mongoose = require("mongoose") 
-const bodyParser = require ("body-parser")
+import express from 'express'
+import mongoose from 'mongoose'
+import bodyParser from 'body-parser'
+import router from './src/routes/api.js'
 
 // init app
 const app = express()
@@ -12,7 +13,7 @@ mongoose.Promise = global.Promise
 app.use(bodyParser.json())
 
 // init the routes
-app.use('/', require('./routes/api'))
+app.use('/', router)
 
 app.use(function (err, req, res, next) {
   res.status(422).send({error: err.message})

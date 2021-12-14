@@ -5,3 +5,4 @@ export const routes = Router();
 
 routes.use("/internships", internshipRouter);
 
+export default routes;
