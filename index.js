@@ -1,21 +1,22 @@
 const express = require("express")
 const mongoose = require("mongoose") 
-const bodyParser = require ("body-parser")
+const helmet = require("helmet");
 
 // init app
 const app = express()
 
+app.use(helmet());
+
 // connect to mongodb
-mongoose.connect("mongodb://localhost/internship-tracker")
-mongoose.Promise = global.Promise
+try {
+  mongoose.connect("mongodb+srv://internshiptracker:internshiptracker@cluster0.6cip6.mongodb.net/internshiptracker?retryWrites=true&w=majority")
+} catch (error) {
+  console.log(error);
+}
 
-app.use(bodyParser.json());
+app.use(express.json());
 
-app.use(
-  bodyParser.urlencoded({
-    extended: true,
-  })
-);
+app.use(express.urlencoded({ extended: true }));
 
 // init the routes
 app.use('/', require('./routes/api'))
