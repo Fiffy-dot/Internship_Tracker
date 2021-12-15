@@ -15,7 +15,7 @@ This the backend logic of the platform that helps the user interacts with the sy
 
 ### clone project
 
-* git clone <repository>
+* clone project: `git clone <repository>`
 
 ### install dependencies
 
@@ -27,6 +27,7 @@ This the backend logic of the platform that helps the user interacts with the sy
 
 ### Project owner
 
-* Dirac Murairi
 * Fiona Nganga
+* Dirac Murairi
+
 
