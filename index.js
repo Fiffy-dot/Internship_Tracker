@@ -1,11 +1,13 @@
 const express = require("express")
 const mongoose = require("mongoose") 
 const helmet = require("helmet");
+const cors = require("cors");
 
 // init app
 const app = express()
 
 app.use(helmet());
+app.use(cors());
 
 // connect to mongodb
 try {

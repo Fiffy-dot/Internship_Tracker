@@ -51,18 +51,24 @@ router.put("/internships/:id", function (req, res, next) {
 });
 
 // delete internship
-router.delete("/internships/:id", function (req, res, next) {
-  Internship.findByIdAndRemove({ _id: req.params.id })
-    .then(function (internship) {
-      res.send(internship);
+router.delete("/internships/:id", async function (req, res, next) {
+  try {
+    await Internship.findByIdAndRemove({ _id: req.params.id }).then((data) => {
+      console.log(data)
     })
-    .catch(next);
+    await Application.deleteMany({ jobId: req.params.id}).then((data) => {
+      console.log(data)
+    });
+    res.status(200).send();
+  }catch(error) {
+    res.status(500).send();
+  }
 });
 
 // EMPLOYERS
 
 // create an employer
-router.post("/employerRegister", async (req, res) => {
+router.post("/employer/register", async (req, res) => {
   const { name, password: plainTextPassword, email } = req.body;
 
   if (!name || typeof name !== "string") {
@@ -105,7 +111,7 @@ router.post("/employerRegister", async (req, res) => {
 });
 
 // Sign In Employer
-router.post("/employerLogin", async (req, res, next) => {
+router.post("/employer/login", async (req, res, next) => {
   try {
     let employer = await Employer.findOne({ where: { email: req.body.email } });
     if (!employer) {
@@ -117,18 +123,18 @@ router.post("/employerLogin", async (req, res, next) => {
     bcrypt.compare(req.body.password, employer.password).then((response) => {
       if (!response) {
         return res.status(401).json({
-          status: failed,
+          status: false,
           message: "Authentication Failed: Incorrect password.",
         });
       }
       let authToken = jwt.sign(
-        { email: employer.email, id: employer.id },
+        { email: employer.email, id: employer._id, name: employer.name, type: "employer" },
         JWT_SECRET
       );
       return res.status(200).json({
         status: true,
         message: "User authentication successful",
-        user: { name: employer.name, email: employer.email, id: employer.id },
+        user: { name: employer.name, email: employer.email, id: employer._id, type: "employer" },
         token: authToken,
         expiresIn: 3600,
       });
@@ -152,11 +158,19 @@ router.get("/employers", function (req, res, next) {
 });
 
 // update employer details
-router.put("/employers/:id", function (req, res, next) {
+router.put("/employer/:id", function (req, res, next) {
   Employer.findByIdAndUpdate({ _id: req.params.id }, req.body)
     .then(function () {
       Employer.findOne({ _id: req.params.id }).then(function (employer) {
-        res.send(employer);
+        let authToken = jwt.sign(
+          { email: employer.email, id: employer._id, name: employer.name, type: "employer" },
+          JWT_SECRET
+        );
+        return res.status(200).json({
+          user: { name: employer.name, email: employer.email, id: employer._id, type: "employer" },
+          token: authToken,
+          expiresIn: 3600,
+        });
       });
     })
     .catch(next);
@@ -165,7 +179,7 @@ router.put("/employers/:id", function (req, res, next) {
 // STUDENTS
 
 // create a student
-router.post("/studentRegister", async (req, res) => {
+router.post("/student/register", async (req, res) => {
   const { name, password: plainTextPassword, email, resumeLink } = req.body;
 
   if (resumeLink == '' || typeof resumeLink !== "string") {
@@ -212,30 +226,30 @@ router.post("/studentRegister", async (req, res) => {
 });
 
 // Sign In Student
-router.post("/studentLogin", async (req, res, next) => {
+router.post("/student/login", async (req, res, next) => {
   try {
     let student = await Student.findOne({ where: { email: req.body.email } });
     if (!student) {
       return res.status(401).json({
-        status: failed,
+        status: false,
         message: "Authentication Failed: User with email address not found.",
       });
     }
     bcrypt.compare(req.body.password, student.password).then((response) => {
       if (!response) {
         return res.status(401).json({
-          status: failed,
+          status: false,
           message: "Authentication Failed: Incorrect password.",
         });
       }
       let authToken = jwt.sign(
-        { email: student.email, id: student.id },
+        { email: student.email, id: student._id, name: student.name, type: "student", resumeLink: student.resumeLink },
         JWT_SECRET
       );
       return res.status(200).json({
         status: true,
         message: "User authentication successful",
-        user: { name: student.name, email: student.email, id: student.id },
+        user: { name: student.name, email: student.email, id: student._id, type: "student", resumeLink: student.resumeLink },
         token: authToken,
         expiresIn: 3600,
       });
@@ -259,11 +273,19 @@ router.get("/students", function (req, res, next) {
 });
 
 // update student details
-router.put("/students/:id", function (req, res, next) {
+router.put("/student/:id", function (req, res, next) {
   Student.findByIdAndUpdate({ _id: req.params.id }, req.body)
     .then(function () {
       Student.findOne({ _id: req.params.id }).then(function (student) {
-        res.send(student);
+        let authToken = jwt.sign(
+          { email: student.email, id: student._id, name: student.name, type: "student", resumeLink: student.resumeLink },
+          JWT_SECRET
+        );
+        res.send({
+            user: { name: student.name, email: student.email, id: student._id, type: "student", resumeLink: student.resumeLink },
+            token: authToken,
+            expiresIn: 3600,
+          });
       });
     })
     .catch(next);
@@ -307,12 +329,12 @@ router.post("/createApplication", async (req, res) => {
   } catch (error) {
     if (error.code === 11000) {
       // duplicate key
-      return res.json({ status: "error", error: "Application already in use" });
+      return res.status(400).json({ status: "error", error: "Application already in use" });
     }
     throw error;
   }
 
-  res.json({ status: "ok" });
+  res.status(200).json({ status: "ok" });
 });
 
 // view all applications
@@ -325,12 +347,23 @@ router.get("/applications", function (req, res, next) {
 });
 
 // update applicant's status
-router.put("/applicantions/:id", function (req, res, next) {
-  Application.updateOne({ studentId: req.params.id }, {$set:{status:req.body}})
+router.put("/applications/:id", function (req, res, next) {
+  Application.updateOne({ _id: req.params.id }, {status:req.body.status})
     .then(function () {
       Application.findOne({ studentId: req.params.id }).then(function (application) {
         res.send(application);
       });
+    })
+    .catch(next);
+});
+
+// delete application
+router.delete("/applications/:id", function (req, res, next) {
+  console.log("I am here")
+  Application.deleteOne({ _id: req.params.id })
+    .then(function (data) {
+      console.log("delte", data)
+      res.status(200).send();
     })
     .catch(next);
 });
@@ -352,6 +385,36 @@ router.get("/studentApplicants/:id", function (req, res, next) {
     })
     .catch(next);
 });
+
+router.get("/application/:id", (req, res, next) => {
+  Application.find({ _id : req.params.id})
+  .then(function (application) {
+    res.send(application);
+  })
+  .catch(next);
+})
+
+// get all internship for an employer
+router.get("/employer/job/:id", async (req, res) => {
+  try {
+    const apps = await Internship.find({ employerId: req.params.id });
+    if (apps){ res.status(200).send(apps)}
+    else { res.status(200).send([])}
+  }catch(err){
+    res.status(500);
+  }
+})
+
+router.get("/employer/job/view/:jobid", async (req, res) => {
+  try {
+    const job = await Internship.find({ _id: req.params.jobid });
+    const apps = await Application.find({ jobId: req.params.jobid });
+    if (apps && job){ res.status(200).send({ "job": job, "applications": apps })}
+    else { res.status(200).send({ "job": [], "applications": [] })}
+  }catch(err){
+    res.status(500);
+  }
+})
 
 
 module.exports = router;
